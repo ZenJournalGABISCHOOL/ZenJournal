@@ -12,6 +12,9 @@
 .button{
     @apply bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition duration-300;
 }
+.special-section {
+    @apply border-4 border-red-300 mb-4 p-10 rounded-lg shadow-lg bg-zen-200 w-full h-1/2 flex flex-col justify-center;
+}
 @layer components {
   .btn-primary {
     @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;

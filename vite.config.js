@@ -6,6 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true
+    open: true,
+    cors: true,
+    proxy: {
+      '/api': {
+        target: 'https://zenjournalbe.vercel.app',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path
+      }
+    }
   }
 })

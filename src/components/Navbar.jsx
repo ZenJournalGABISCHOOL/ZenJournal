@@ -1,26 +1,38 @@
 import { Link} from "react-router-dom";
 import { useSelector, useDispatch} from "react-redux";
+import {checkForRegistration } from "../store/slices/authSlice";
+import { useEffect } from "react";
 
 
 
 function Navbar() {
     const {isSignedIn, user, name} = useSelector((state) => state.auth);
+    console.log(user);
+    useEffect(() => {
+        dispatch(checkForRegistration()).unwrap();
+    }, [dispatch]);
+    const dispatch = useDispatch();
+
+    const handleLogout = () => {
+        // Dispatch logout action
+        dispatch(logout()).unwrap();
+    };
+
     return(
-        <nav className="bg-red-100 flex flex-row h-20 items-center shadow-md">
+        <nav className="flex flex-row h-20 items-center shadow-md">
             <Link to="/" className="ml-4">
             <div className="flex flex-col cursor-pointer p-2 text-center hover:bg-red-200 rounded-md">
-            <h1 className="text-2xl">ZenJournal</h1>
-            <p className="text-xs">Your place to relax</p>
+            <h1 className="text-2xl custom-color-font font-bold">ZenJournal</h1>
+            <p className="text-xs custom-color-font">Write. Reflect. Grow.</p>
             </div>
             </Link>
             
             <div className="ml-auto mr-4 flex items-center">
                 {isSignedIn && (
                 <>
-                <p className="mr-4">Hello, {user.name}</p>
-                <Link to="/logout" className="button">Logout</Link>
+                <p className="mr-4">Hello, {user.user.name}</p>
+                <Link onClick={handleLogout} className="button">Logout</Link>
                 </>
-                
                 )}
                 {!isSignedIn &&(
                 <>

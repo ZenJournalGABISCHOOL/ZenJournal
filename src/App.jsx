@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 import LoginPage from './pages/loginPage'
 import SignUpPage from './pages/signUp'
 import zenJournalStore from './store/index4Store'
+import JournalPage from '../JournalBit/ZenJournal/src/components/Feature/JournalPage'
 function App() {
         return(
         <>
@@ -15,6 +16,7 @@ function App() {
                 <Route path="/" element={<MainHub />}></Route>
                 <Route path="/login" element={<LoginPage />}></Route>
                 <Route path="/signup" element={<SignUpPage />}></Route>
+                <Route path="/journal" element={<JournalPage />}></Route>
             </Routes>
         
         

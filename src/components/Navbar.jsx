@@ -8,10 +8,11 @@ import { useEffect } from "react";
 function Navbar() {
     const {isSignedIn, user, name} = useSelector((state) => state.auth);
     console.log(user);
+    const dispatch = useDispatch();
     useEffect(() => {
         dispatch(checkForRegistration()).unwrap();
     }, [dispatch]);
-    const dispatch = useDispatch();
+    
 
     const handleLogout = () => {
         // Dispatch logout action
@@ -31,6 +32,7 @@ function Navbar() {
                 {isSignedIn && (
                 <>
                 <p className="mr-4">Hello, {user.user.name}</p>
+                <Link to="/journal" className="mr-4 button">My Journal</Link>
                 <Link onClick={handleLogout} className="button">Logout</Link>
                 </>
                 )}

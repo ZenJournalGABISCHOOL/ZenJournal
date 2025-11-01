@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import LoginPage from './pages/loginPage'
 import SignUpPage from './pages/signUp'
 import zenJournalStore from './store/index4Store'
-import JournalPage from '../JournalBit/ZenJournal/src/components/Feature/JournalPage'
+import JournalPage from './Feature/JournalPage'
 function App() {
         return(
         <>

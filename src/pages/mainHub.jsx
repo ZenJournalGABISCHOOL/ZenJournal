@@ -5,16 +5,60 @@ import { is } from "zod/locales";
 
 
 
+
+
+
+
 function SignedInPage() {
     const [mood, setMood] = useState(null);
+    function DetermineMoodMessage(mood) {
+
+    switch(mood) {
+        case "very low":
+            return "We're here for you. Remember, every day is a new opportunity.";
+        case "low":
+            return "It's okay to have off days. Take a deep breath and keep going.";
+        case "neutral":
+            return "A balanced day is a good day. Keep maintaining your equilibrium.";
+        case "good":
+            return "Great to hear! Keep up the positive vibes and continue your journey.";
+        case "great":
+            return "Fantastic! Your positivity is contagious. Keep shining!";
+        default:
+            return "Select your mood to receive a personalized message.";
+        
+    }
+}
+
+function MoodPopup({mood}) {
+    return(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-xl font-bold mb-4">{DetermineMoodMessage(mood)}</h2>
+                <Link to="/journal" className="button">Write in your journal</Link>
+                <button className="ml-4 button" onClick={() => {
+                    setMood(null);
+                    console.log("Mood popup closed");
+                }}>Close</button>
+                </div>
+        </div>
+    )
+}
     return(
         <>
-        <div className="h-1/9 border-4 border-red-200 shadow-lg mt-2 pb-0 rounded-lg w-4/6 flex flex-row align-center justify-start mx-auto">
+        <div className="h-1/9 border-4 border-red-200 shadow-lg mt-2 pb-0 rounded-lg w-4/6 flex flex-row align-center justify-start mx-auto" onClick={() => {
+            setMood(null);
+            console.log("Mood popup closed");
+        } }>
         <Link to="/journal/new" className="button m-4">Today</Link>
         <Link to="/journal/view" className="button m-4">Journal</Link>
         <Link to="/journal/settings" className="button m-4">Insights</Link>
         
         </div>
+        // Popup window for when mood button is clicked
+
+        {mood != null ? <MoodPopup mood={mood} /> : null}
+
         <div className="w-5/6 h-fit flex flex-col text-center pt-10 border-4 border-red-200 shadow-lg mt-4 p-0 rounded-lg mx-auto">
             <h1 className="text-2xl font-bold">How are you feeling today?</h1>
             <p className="text-sm mt-3">Select your current mood to track your emotional journey.</p>
@@ -46,7 +90,7 @@ function SignedInPage() {
                 </button>
                 </div>
                 <div className="mt-6 flex justify-center text-center">
-                   <button className="p-5 border-2 border-zen-300 flex items-center justify-center">Feeling {mood != null ? mood : "No mood selected"} today</button> 
+                   <button className="p-5 border-2 border-zen-300 flex items-center justify-center">Feeling {mood != null ? mood : "nothing"} today</button> 
                 </div>
                 
         </div>
@@ -84,7 +128,7 @@ function MainHub() {
     return(
         <div className="body">
             <div className="special-section h-1/5 ml-auto mr-auto">
-            <h1 className="text-4xl">{isSignedIn ? `Welcome back, ${user.user.name}` : "Welcome to ZenJournal"}</h1>
+            <h1 className="text-4xl">{isSignedIn ? `Welcome back, ${name}` : "Welcome to ZenJournal"}</h1>
             <p className="text-lg mt-3">{isSignedIn ? `How are you feeling today? Take a moment to reflect and write.` : "Your place to relax and reflect."}</p>
             </div>
             {isSignedIn ? <SignedInPage /> : <SignedOutPage />}

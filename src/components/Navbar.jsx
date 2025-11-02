@@ -1,22 +1,30 @@
-import { Link} from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import { useSelector, useDispatch} from "react-redux";
-import {checkForRegistration } from "../store/slices/authSlice";
-import { useEffect } from "react";
+import { checkForRegistration, logout, logoutImmediate } from "../store/slices/authSlice";
+import { initialState } from "../store/slices/authSlice";
+
 
 
 
 function Navbar() {
-    const {isSignedIn, user, name} = useSelector((state) => state.auth);
-    console.log(user);
     const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(checkForRegistration()).unwrap();
-    }, [dispatch]);
+    const navigate = useNavigate();
+    const {isSignedIn, user, name} = useSelector((state) => state.auth);
+    console.log(user, initialState);
     
 
-    const handleLogout = () => {
-        // Dispatch logout action
-        dispatch(logout()).unwrap();
+    const handleLogout = async() => {
+        try {
+            // Try API logout first
+            await dispatch(logout()).unwrap();
+        } catch (error) {
+            console.error("API logout failed, using immediate logout:", error);
+            // If API logout fails, use immediate logout
+            dispatch(logoutImmediate());
+        } finally {
+            // Always navigate to login page
+            navigate("/login");
+        }
     };
 
     return(
@@ -31,7 +39,7 @@ function Navbar() {
             <div className="ml-auto mr-4 flex items-center">
                 {isSignedIn && (
                 <>
-                <p className="mr-4">Hello, {user.user.name}</p>
+                <p className="mr-4">Hello, {name}</p>
                 <Link to="/journal" className="mr-4 button">My Journal</Link>
                 <Link onClick={handleLogout} className="button">Logout</Link>
                 </>

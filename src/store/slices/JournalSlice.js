@@ -1,56 +1,208 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
+import { BASE_URL } from "../BASEURL";
+
 
 const initialState = {
-  entries: JSON.parse(localStorage.getItem("journalEntries")) || []
-};
+  entries : [{
+    text: "",
+    mood: "",
+    tags: [""],
+    id: null,
+  }],
+  loading: false,
+  error: null,
 
-const journalSlice = createSlice({
-  name: "Zainjournal",
-  initialState,
-  reducers: {
-    addEntry: {
-      reducer(state, action) {
-        state.entries.push(action.payload);
-      },
-      prepare(title, content) {
-        return {
-          payload: {
-            id: nanoid(),
-            title,
-            content,
-            date: new Date().toISOString()
-          }
-        };
-      }
-    },
-    updateEntry(state, action) {
-      const { id, title, content } = action.payload;
-      const existing = state.entries.find(e => e.id === id);
-      if (existing) {
-        existing.title = title;
-        existing.content = content;
-        existing.lastModified = new Date().toISOString(); // Add last modified timestamp
-        // Save to localStorage after updating
-        saveEntriesToStorage(state.entries);
-      }
-    },
-    deleteEntry(state, action) {
-      state.entries = state.entries.filter(e => e.id !== action.payload);
-      // Save to localStorage after deleting
-      saveEntriesToStorage(state.entries);
-    },
-    // New action to clear all entries (optional)
-    clearAllEntries(state) {
-      state.entries = [];
-      saveEntriesToStorage(state.entries);
-    },
-    // New action to import entries (optional, useful for backup/restore)
-    importEntries(state, action) {
-      state.entries = action.payload;
-      saveEntriesToStorage(state.entries);
+}
+
+export const addEntry = createAsyncThunk(
+  "addEntry/journals",
+  async ({text, mood, tags}, { rejectWithValue }) => {
+    try {
+      const entryData = { text, mood, tags };
+      console.log("Adding entry with data:", entryData);
+      console.log("Using URL:", `${BASE_URL}/journals`);
+      const response = await axios.post(`${BASE_URL}/journals`, entryData, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      console.log("Add entry response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Add entry error:", error);
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
+)
+
+export const getAllJournals = createAsyncThunk(
+  "journals/getAll",
+  async (_, { rejectWithValue }) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      console.log("Getting all journals from:", `${BASE_URL}/journals`);
+      const response = await axios.get(`${BASE_URL}/journals`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      console.log("Get all journals response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Get all journals error:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+)
+
+export const findJournalById = createAsyncThunk(
+  "journals/findById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/journals/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      console.log("Find journal by ID response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Find journal by ID error:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+)
+
+export const updateEntry = createAsyncThunk(
+  "journals/update",
+  async ({ id, text, mood, tags }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${BASE_URL}/journals/${id}`, { text, mood, tags }, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      console.log("Update entry response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Update entry error:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+)
+
+export const deleteEntry = createAsyncThunk(
+  "journals/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`${BASE_URL}/journals/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        }
+      });
+      console.log("Delete entry response:", response.data);
+
+      return { id }; // Return the id for state management
+    } catch (error) {
+      console.error("Delete entry error:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+)
+
+const journalSlice = createSlice({
+  name: "journal",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Add Entry
+      .addCase(addEntry.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addEntry.fulfilled, (state, action) => {
+        state.loading = false;
+        state.entries.push(action.payload);
+        state.id = action.payload._id;
+        console.log("Push successful. Current entries after addition:", state.entries);
+      })
+      .addCase(addEntry.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        console.error("Add entry rejected with error:", action.payload);
+      })
+      // Get All Journals
+      builder
+      .addCase(getAllJournals.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllJournals.fulfilled, (state, action) => {
+        state.loading = false;
+        state.entries = action.payload;
+      })
+      .addCase(getAllJournals.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Find Journal By ID
+      builder
+      .addCase(findJournalById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(findJournalById.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.entries.findIndex(entry => entry.id === action.payload._id);
+        if (index !== -1) {
+          state.entries[index] = action.payload;
+        } else {
+          state.entries.push(action.payload);
+        }
+      })
+      .addCase(findJournalById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Update Entry
+      builder
+      .addCase(updateEntry.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEntry.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.entries.findIndex(entry => entry.id === action.payload._id);
+        if (index !== -1) {
+          state.entries[index] = action.payload;
+        }
+      })
+      .addCase(updateEntry.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Delete Entry
+      builder
+      .addCase(deleteEntry.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteEntry.fulfilled, (state, action) => {
+        state.loading = false;
+        console.log("Deleting entry with ID:", action.payload.id);
+        console.log("Current entries before delete:", state.entries);
+        state.entries = state.entries.filter(entry => entry._id !== action.payload.id);
+        console.log("Delete successful. Current entries after deletion:", state.entries);
+      })
+      .addCase(deleteEntry.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
 });
 
-export const { addEntry, updateEntry, deleteEntry, clearAllEntries, importEntries } = journalSlice.actions;
+export const { } = journalSlice.actions;
+
 export default journalSlice.reducer;

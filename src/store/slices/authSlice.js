@@ -7,9 +7,10 @@ axios.defaults.withCredentials = false; // Try without credentials first
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
-const initialState = {
+export const initialState = {
   user: null,
   name: null,
+  token: null,
   isSignedIn: false,
   isAdmin: false,
   isAuthor: false,
@@ -33,15 +34,45 @@ export const login = createAsyncThunk(
         }
     }
 )
+export const logout = createAsyncThunk(
+    "auth/logout",
+    async(_, {rejectWithValue, getState}) => {
+        try {
+            const { auth } = getState();
+            const token = auth.token || localStorage.getItem('authToken');
+            
+            // If there's a token, make the logout API call
+            if (token) {
+                await axios.post(`${BASE_URL}/auth/logout`, {}, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+            }
+            localStorage.removeItem('authToken');
+            return { success: true };
+        } catch(error) {
+            console.log("Logout error:", error);
+            localStorage.removeItem('authToken');
+            return { success: true }; 
+        }
+    }
+)
 export const checkForRegistration = createAsyncThunk(
-    "auth/register",
+    "check4Registration/register",
     async(_, {rejectWithValue}) => {
         try {
-            const response = await axios.get(`${BASE_URL}/auth/register`, {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                return rejectWithValue('No auth token found');
+            }
+            const response = await axios.get(`${BASE_URL}/auth/user`, {
                 headers: {
-                    "Content-Type" : "application/json"
+                    "Authorization" : `Bearer ${localStorage.getItem('authToken')}`
                 }
             })
+            console.log("Check for registration response:", response.data);
             return response.data;
         } catch(error) {
             console.log(error);
@@ -55,39 +86,17 @@ export const registration = createAsyncThunk(
         try {
             console.log("Attempting registration with:", credentials);
             console.log("Using BASE_URL:", BASE_URL);
-            
             const response = await axios.post(`${BASE_URL}/auth/register`, credentials, {
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json"
                 },
-                timeout: 15000, // 15 second timeout
             });
-            
             console.log("Registration successful:", response.data);
             return response.data;
             
         } catch(error) {
-            console.log("Registration error details:", {
-                message: error.message,
-                code: error.code,
-                response: error.response?.data,
-                status: error.response?.status,
-                url: error.config?.url
-            });
-            
-            if (error.code === 'ERR_NETWORK') {
-                return rejectWithValue('Network connection failed. Please check your internet connection and try again.');
-            }
-            
-            if (error.response?.status === 400) {
-                return rejectWithValue(error.response.data?.message || 'Invalid registration data');
-            }
-            
-            if (error.response?.status === 409) {
-                return rejectWithValue('Email already exists. Please use a different email.');
-            }
-            
+            console.error("Registration error:", error);
             return rejectWithValue(error.response?.data?.message || error.message || 'Registration failed');
         }
     }
@@ -96,7 +105,28 @@ export const registration = createAsyncThunk(
 const authSlice = createSlice({
     name: "auth",
     initialState, 
-    reducers: {}, 
+    reducers: {
+        // Immediate logout without API call
+        logoutImmediate: (state) => {
+            state.user = null;
+            state.name = null;
+            state.token = null;
+            state.isSignedIn = false;
+            state.isAdmin = false;
+            state.isAuthor = false;
+            state.loading = false;
+            state.error = null;
+            localStorage.removeItem('authToken');
+        },
+        // Register immediate (if registered) 
+        registerImmediate: (state, action) => {
+            state.user = action.payload;
+            state.isSignedIn = true;
+            state.loading = false;
+            state.error = null;
+            console.log("Immediate registration set with payload:", action.payload);
+        }
+    }, 
     extraReducers: (builder) => {
         // Login
         builder
@@ -107,7 +137,8 @@ const authSlice = createSlice({
         .addCase(login.fulfilled, (state, action) => {
             state.loading = false;
             state.user = action.payload;
-            state.name = action.payload.name;
+            state.name = action.payload.user.name;
+            localStorage.setItem('authToken', action.payload.token);
             console.log("Login successful:", action.payload);
             state.isSignedIn = true;
         })
@@ -133,7 +164,47 @@ const authSlice = createSlice({
             state.error = action.payload;
             console.error("Registration failed:", action.payload);
         });
+        // Check For Registration
+        builder
+        .addCase(checkForRegistration.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        })
+        .addCase(checkForRegistration.fulfilled, (state, action) => {
+            state.loading = false;
+            state.user = action.payload;
+            state.name = action.payload.name;
+            state.isSignedIn = true;
+            console.log("Check for registration successful:", action.payload, ". Initial state:", state);
+        })
+        .addCase(checkForRegistration.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            console.error("Check for registration failed:", action.payload);
+            localStorage.removeItem('authToken');
+            state.isSignedIn = false;
+        });
+        // Logout
+        builder
+        .addCase(logout.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        })
+        .addCase(logout.fulfilled, (state) => {
+            state.loading = false;
+            state.user = null;
+            state.name = null;
+            state.token = null;
+            localStorage.removeItem('authToken');
+            console.log("Logout successful");
+            state.isSignedIn = false;
+        })
+        .addCase(logout.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload;
+            console.error("Logout failed:", action.payload);
+        });
     }
 })
-export const {  } = authSlice.actions;
+export const { logoutImmediate, registerImmediate } = authSlice.actions;
 export default authSlice.reducer;

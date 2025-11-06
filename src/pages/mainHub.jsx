@@ -155,16 +155,10 @@ function MainHub() {
     
     return(
         <div className="body">
-            {isSignedIn && <GenericPopup children={
-                
-                    <h1>Welcome to ZenJournal, {name}! <br></br> We're so glad to have you here! You logged in {howManyLogins} times.</h1>
-                
-                }></GenericPopup>}
             <div className="special-section h-1/5 ml-auto mr-auto">
             <h1 className="text-4xl">{isSignedIn ? `Welcome back, ${name}` : "Welcome to ZenJournal"}</h1>
             <p className="text-lg mt-3">{isSignedIn ? `How are you feeling today, ${name == "Ayuub Yusuf" ? "man": name}? Take a moment to reflect and write.` : "Your place to relax and reflect."}</p>
             </div>
-
             {isSignedIn ? <SignedInPage /> : <SignedOutPage />}
           </div>  
     )

@@ -9,11 +9,11 @@ const TagWindow = ({ allTags, filterNotes }) => {
         console.log("Rendering TagWindow with tags:", uniqueTags),
         <>
         <div className="tag-window">
-            {uniqueTags.map((tag, index) => (
+            {uniqueTags.length != 0 ? uniqueTags.map((tag, index) => (
                 <span key={index} className="tag" onClick={() => {filterNotes(tag); didHeSelectaTag(tag)}}>
                     {tag}
                 </span>
-            ))}
+            )) : <p className="w-full text-gray-500 flex justify-center text-center items-center"><strong>No tags available</strong></p>}
             
         </div>
         {selectedTag && <button onClick={() => {didHeSelectaTag(""); filterNotes(null)}} className="button flex flex-row">

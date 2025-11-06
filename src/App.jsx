@@ -18,11 +18,11 @@ function App() {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                setLoaded(false);
+                
                 await dispatch(checkForRegistration()).unwrap();
-                setLoaded(true);
+                
             } catch (error) {
-                setLoaded(true);
+              
                 console.error('Failed to check authentication:', error);
             }
         };

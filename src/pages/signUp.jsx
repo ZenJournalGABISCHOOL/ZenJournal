@@ -6,8 +6,19 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { registration } from "../store/slices/authSlice";
 import { set } from "zod";
+import { User2Icon, MailIcon, KeyIcon } from "lucide-react";
 
-
+const CustomInputField = ({icon: Icon, type, placeholder, register, errors, typeOfInput}) => {
+    return (
+        <div className="relative">
+            {Icon && <Icon className="absolute left-2 top-9 w-4 h-4 text-gray-400"/>}
+            <input className={Icon ? "pl-7" : ""} type={type} placeholder={placeholder} {...register} /> 
+            {errors[typeOfInput] && <p className="text-red-500">{errors[typeOfInput].message}</p>} 
+        </div>
+        
+    );
+}
+   
 const SignUpPage = () => {
     const dptch = useDispatch();
     const nav = useNavigate();
@@ -48,14 +59,12 @@ const SignUpPage = () => {
     }
     return (
         <form className="body" onSubmit={handleSubmit(onSub)}>
-            <div className="login-container mt-40 flex flex-col items-center w-1/2">
+            <div className="login-container mt-40 flex flex-col w-1/2">
                 <h1 className="text-3xl mb-4 font-bold">Sign Up</h1>
-                <input type="text" placeholder="Put name here" {...register("name")} />
-                {errors.name && <p className="text-red-500">{errors.name.message}</p>}
-                <input type="email" placeholder="Put email here" {...register("email")} />
-                {errors.email && <p className="text-red-500">{errors.email.message}</p>}
-                <input type="password" placeholder="Put password here" {...register("password")} />
-                {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+                <p className="border-4 border-red-200 bg-white p-1 rounded shadow-md">You're <em><strong>always</strong></em> welcome here!</p>
+                <CustomInputField icon={User2Icon} type="text" placeholder="Name" register={register("name")} errors={errors} typeOfInput="name" />
+                <CustomInputField icon={MailIcon} type="email" placeholder="Email" register={register("email")} errors={errors} typeOfInput="email" />
+                <CustomInputField icon={KeyIcon} type="password" placeholder="Password" register={register("password")} errors={errors} typeOfInput="password" />
                 <button className="button" type="submit">Sign Up</button>
                 {(errors.password || errors.email || errors.name) && <p className="text-red-500 mt-2">Fill in all fields correctly</p>}
                 {failed && <p className="text-red-500 mt-2 font-bold">Registration failed. Please check your credentials and try again.</p>}

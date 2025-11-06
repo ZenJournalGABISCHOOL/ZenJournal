@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../store/slices/authSlice";
+import { login, updateLoginCount } from "../store/slices/authSlice";
 import { set } from "zod";
 import GenericPopup from "../components/GenericPopup";
 import { User } from "lucide-react";
@@ -16,7 +16,7 @@ const LoginPage = () => {
     const nav = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [failed, setFailed] = useState(false);
-    let success = false;
+    const [success, setSuccess] = useState(false);
 
     const {name} = useSelector((state) => state.auth);
     const {
@@ -35,8 +35,9 @@ const LoginPage = () => {
         try {
             setIsSubmitting(true);
             setFailed(false);
-            await dptch(login(data)).unwrap();
-            success = true;
+            const result = await dptch(login(data)).unwrap();
+            setSuccess(true);
+            dptch(updateLoginCount(result.token));
             console.log("Login successful for user:", data.email, success);
             reset();
             setTimeout(() =>{
@@ -51,9 +52,9 @@ const LoginPage = () => {
     }
     return (
         <>
-            {success && <GenericPopup children={(
-                <p>Success! Welcome to ZenJournal, {name}</p>
-            )}/>}
+            {success && <GenericPopup>
+                <h1>Welcome back, {name}! <br></br> Redirecting to your main hub...</h1>
+                </GenericPopup>}
         <form className="body" onSubmit={handleSubmit(onSubmit)}>
             
             <div className="login-container mt-40 flex flex-col  w-1/2">

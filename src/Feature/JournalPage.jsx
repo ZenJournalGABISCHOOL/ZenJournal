@@ -1,20 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addEntry, getAllJournals, findJournalById, updateEntry, deleteEntry } from "../store/slices/JournalSlice";
+import { addEntry, getAllJournals, findJournalById, updateEntry, deleteEntry, setAllTags } from "../store/slices/JournalSlice";
 import JournalForm from "./JournalForm";
 import JournalList from "./JournalList";
 import { set } from "zod";
+import TagWindow from "../components/TagWindow";
 
 export default function JournalPage() {
   const dispatch = useDispatch();
-  const { entries, loading, error } = useSelector(state => state.journal);
-  const [editing, setEditing] = useState(null);
+  const { entries, loading, error, allTags } = useSelector(state => state.journal);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [filteredEntries, setFilteredEntries] = useState(null);
+
+  const filterNotes = (tag) => {
+    if (tag == null) {
+      setFilteredEntries(null);
+      return;
+    }
+    const filteredEntries = entries.filter((entry) => entry.tags && entry.tags.includes(tag));
+    console.log("New filtered entries: ", filteredEntries);
+    setFilteredEntries(filteredEntries);
+    return filteredEntries;
+  }
 
   const deleteAllEntries = async () => {
     if (window.confirm('Are you sure you want to delete all journal entries? This action cannot be undone.')) {
       try {
+        setAllTags(null);
         await Promise.all(entries.map(entry => dispatch(deleteEntry(entry._id)).unwrap()));
         console.log('All entries deleted successfully.');
         window.alert('All journal entries have been deleted.');
@@ -29,8 +41,14 @@ export default function JournalPage() {
     const loadJournals = async () => {
       try {
         setIsLoaded(false);
-        await dispatch(getAllJournals()).unwrap();
-        console.log("Journals loaded:", entries);
+        const journals = await dispatch(getAllJournals()).unwrap();
+        console.log("Journals loaded:", journals);
+        
+        // Extract all unique tags from loaded journals
+        const uniqueTags = Array.from(new Set(journals.flatMap(journal => journal.tags || [])));
+        dispatch(setAllTags(uniqueTags));
+        console.log("All tags extracted and set:", uniqueTags);
+        
         setIsLoaded(true);
       } catch (error) {
         console.error('Failed to load journals:', error);
@@ -86,7 +104,8 @@ export default function JournalPage() {
       )}
       
       <JournalForm/>
-      <JournalList entries={entries}/>
+      <TagWindow allTags={allTags} filterNotes={filterNotes} />
+      <JournalList entries={filteredEntries === null ? entries : filteredEntries}/>
     </div>
     </>
   );

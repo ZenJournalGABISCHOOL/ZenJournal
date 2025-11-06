@@ -13,7 +13,7 @@ import { set } from 'zod'
 
 function App() {
     const dispatch = useDispatch();
-    const [loaded, setLoaded] = useState(false);
+    const {loading} = useSelector((state) => state.auth);
     const [showDropdown, setShowDropdown] = useState(false);
     useEffect(() => {
         const checkAuth = async () => {
@@ -29,7 +29,7 @@ function App() {
         
         checkAuth();
     }, [dispatch]);
-    if (!loaded) {
+    if (loading) {
         return( <div className="text-center p-4">
             <p className="text-lg">Loading...</p>
         </div> )

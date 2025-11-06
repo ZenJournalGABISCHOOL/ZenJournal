@@ -5,11 +5,13 @@ import { initialState } from "../store/slices/authSlice";
 import { setTempMood, setTempText } from "../store/slices/JournalSlice";
 import { User2Icon } from "lucide-react";
 import { useState } from "react";   
+import GenericPopup from "./GenericPopup";
 
 function Navbar({showDropdownProp, setShowDropdownProp}) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const {isSignedIn, user, name} = useSelector((state) => state.auth);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     console.log(user, initialState);
     
     // Clear temp journal data function
@@ -28,13 +30,21 @@ function Navbar({showDropdownProp, setShowDropdownProp}) {
         );
     }
     const handleLogout = async() => {
+        setIsLoggingOut(true);
+        console.log("Logging out...", isLoggingOut);
         try {
             // Try API logout first
+            
             await dispatch(logout()).unwrap();
+            setIsLoggingOut(false);
+            console.log("API logout successful.");
         } catch (error) {
             console.error("API logout failed, using immediate logout:", error);
             // If API logout fails, use immediate logout
+            
             dispatch(logoutImmediate());
+            setIsLoggingOut(false);
+            console.log("Immediate logout successful.");
         } finally {
             // Always navigate to login page
             navigate("/login");
@@ -43,6 +53,11 @@ function Navbar({showDropdownProp, setShowDropdownProp}) {
 
     return(
         <nav className="flex flex-row h-20 items-center shadow-md">
+            {isLoggingOut && (
+                <GenericPopup>
+                    <p>Logging out {name}.......</p>
+                </GenericPopup>
+            )}
             <Link onClick={clearTempJournalData} to="/" className="ml-4">
             <div className="flex flex-col cursor-pointer p-2 text-center hover:bg-red-200 rounded-md">
             <h1 className="text-2xl custom-color-font font-bold">ZenJournal</h1>

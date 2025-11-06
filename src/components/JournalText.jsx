@@ -23,7 +23,7 @@ const JournalText = ({ changeTempText = false, presetValue}) => {
       tags: ""
     }
   });
-    console.log('JournalText tempText:', tempText);
+    console.log('JournalText tempText:', tempText, "presetValue:", presetValue);
     
     return (
         <div className="journal-text-container">

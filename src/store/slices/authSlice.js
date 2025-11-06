@@ -12,10 +12,10 @@ export const initialState = {
   name: null,
   token: null,
   isSignedIn: false,
-  isAdmin: false,
-  isAuthor: false,
   loading: false,
   error: null,
+  howManyLogins: 0, // New state field to track login count
+  tokensAndLogins: [], // Array to track tokens and their login counts
 };
 
 export const login = createAsyncThunk(
@@ -106,6 +106,20 @@ const authSlice = createSlice({
     name: "auth",
     initialState, 
     reducers: {
+        updateLoginCount: (state, action) => {
+            console.log("Updating login count for token:", action.payload, "Current state:", state.tokensAndLogins);
+            const entry = state.tokensAndLogins.find(entry => entry.token === action.payload);
+            console.log("Found entry for token:", entry, entry?.token, entry?.count);
+            if (entry) {
+                entry.count += 1;
+                state.howManyLogins = entry.count;
+            } else {
+                state.tokensAndLogins.push({token: action.payload, count: 1});
+                state.howManyLogins = 1;
+            }
+            
+            console.log("Login count updated to:", state.howManyLogins);
+        },
         // Immediate logout without API call
         logoutImmediate: (state) => {
             state.user = null;
@@ -141,6 +155,17 @@ const authSlice = createSlice({
             localStorage.setItem('authToken', action.payload.token);
             console.log("Login successful:", action.payload);
             state.isSignedIn = true;
+            // const existingTokenEntry = state.tokensAndLogins.find(entry => entry.token === action.payload.token);
+            // if (existingTokenEntry) {
+            //     existingTokenEntry.count += 1;
+            //     state.howManyLogins = state.tokensAndLogins.reduce((acc, entry) => acc + entry.count, 0);
+            // } else {
+            //     state.tokensAndLogins.push({token: action.payload.token, count: 1});
+            //     state.howManyLogins = state.tokensAndLogins.reduce((acc, entry) => acc + entry.count, 0);   
+            // }
+            
+            // console.log("Token logins:", state.tokensAndLogins);
+            // console.log("Total login count updated:", state.howManyLogins);
         })
         .addCase(login.rejected, (state, action) => {
             state.loading = false;
@@ -208,5 +233,5 @@ const authSlice = createSlice({
         });
     }
 })
-export const { logoutImmediate, registerImmediate } = authSlice.actions;
+export const { logoutImmediate, registerImmediate, updateLoginCount } = authSlice.actions;
 export default authSlice.reducer;

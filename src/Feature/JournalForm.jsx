@@ -73,6 +73,7 @@ export default function JournalForm() {
       <JournalText
         register={register("text")}
         changeTempText={true}
+        presetValue={tempText}
       />
       {errors.text && <p className="text-red-500 mb-3">{errors.text.message}</p>}
       <select

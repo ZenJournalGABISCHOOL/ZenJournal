@@ -14,6 +14,7 @@ const initialState = {
   error: null,
   tempText: "",
   tempMood: "",
+  allTags: [],
 }
 
 
@@ -125,6 +126,10 @@ const journalSlice = createSlice({
       state.tempMood = action.payload;
       console.log("Temp mood updated to:", state.tempMood);
   },
+  setAllTags: (state, action) => {
+      state.allTags = action.payload;
+      console.log("All tags updated to:", state.allTags);
+  }, 
 },
   extraReducers: (builder) => {
     builder
@@ -138,6 +143,15 @@ const journalSlice = createSlice({
         state.entries.push(action.payload);
         state.id = action.payload._id;
         console.log("Push successful. Current entries after addition:", state.entries);
+        
+        // Update allTags with new tags from the added entry
+        if (action.payload.tags && action.payload.tags.length > 0) {
+          const newTags = action.payload.tags.filter(tag => !state.allTags.includes(tag));
+          if (newTags.length > 0) {
+            state.allTags = [...state.allTags, ...newTags];
+            console.log("New tags added:", newTags, "All tags now:", state.allTags);
+          }
+        }
       })
       .addCase(addEntry.rejected, (state, action) => {
         state.loading = false;
@@ -196,6 +210,15 @@ const journalSlice = createSlice({
           console.warn("Entry not found in local state, adding it");
           state.entries.push(action.payload);
         }
+        
+        // Update allTags with new tags from the updated entry
+        if (action.payload.tags && action.payload.tags.length > 0) {
+          const newTags = action.payload.tags.filter(tag => !state.allTags.includes(tag));
+          if (newTags.length > 0) {
+            state.allTags = [...state.allTags, ...newTags];
+            console.log("New tags added from update:", newTags, "All tags now:", state.allTags);
+          }
+        }
       })
       .addCase(updateEntry.rejected, (state, action) => {
         state.loading = false;
@@ -214,6 +237,11 @@ const journalSlice = createSlice({
         console.log("Current entries before delete:", state.entries);
         state.entries = state.entries.filter(entry => entry._id !== action.payload.id);
         console.log("Delete successful. Current entries after deletion:", state.entries);
+        
+        // Recalculate allTags from remaining entries
+        const remainingTags = Array.from(new Set(state.entries.flatMap(entry => entry.tags || [])));
+        state.allTags = remainingTags;
+        console.log("Tags recalculated after deletion:", state.allTags);
       })
       .addCase(deleteEntry.rejected, (state, action) => {
         state.loading = false;
@@ -222,6 +250,6 @@ const journalSlice = createSlice({
   },
 });
 
-export const {setTempText, setTempMood } = journalSlice.actions;
+export const {setTempText, setTempMood, setAllTags } = journalSlice.actions;
 
 export default journalSlice.reducer;

@@ -9,7 +9,7 @@ const ProtectedRoute = ({children, requireAuthentication = true}) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
     if (!requireAuthentication && isSignedIn) {
-        return <Navigate to="/journal" state={{ from: location }} replace />;
+        return <Navigate to="/" state={{ from: location }} replace />;
     }
 
     return children;

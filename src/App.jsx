@@ -14,6 +14,7 @@ import { set } from 'zod'
 function App() {
     const dispatch = useDispatch();
     const [loaded, setLoaded] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
     useEffect(() => {
         const checkAuth = async () => {
             try {
@@ -35,13 +36,18 @@ function App() {
     }
     return(
         <>
-        <Navbar /> 
+        <div onClick={() => {if (showDropdown) {setShowDropdown(false)}}}>
+          <Navbar showDropdownProp={showDropdown} setShowDropdownProp={setShowDropdown} /> 
             <Routes>
                 <Route path="/" element={<MainHub />}></Route>
                 <Route path="/login" element={<ProtectedRoute requireAuthentication={false}><LoginPage /></ProtectedRoute>}></Route>
                 <Route path="/signup" element={<ProtectedRoute requireAuthentication={false}><SignUpPage /></ProtectedRoute>}></Route>
-                <Route path="/journal" element={<ProtectedRoute requireAuthentication={true}><JournalPage /></ProtectedRoute>}></Route>
-            </Routes>
+                <Route path="/journal" element={<ProtectedRoute requireAuthentication={true}><JournalPage /></ProtectedRoute>}></Route>  
+                
+                
+            </Routes>  
+        </div>
+        
         </>   
             
         )

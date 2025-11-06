@@ -10,6 +10,19 @@ export default function JournalPage() {
   const { entries, loading, error } = useSelector(state => state.journal);
   const [editing, setEditing] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showEditPopup, setShowEditPopup] = useState(false);
+
+  const deleteAllEntries = async () => {
+    if (window.confirm('Are you sure you want to delete all journal entries? This action cannot be undone.')) {
+      try {
+        await Promise.all(entries.map(entry => dispatch(deleteEntry(entry._id)).unwrap()));
+        console.log('All entries deleted successfully.');
+        window.alert('All journal entries have been deleted.');
+      } catch (error) {
+        console.error('Failed to delete all entries:', error);
+      }
+    }
+  };
 
   // Effect to handle initial loading
   useEffect(() => {
@@ -56,8 +69,13 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="journal-form-container">
+    <>
+      <div className="journal-form-container">
+        <div className="flex mb-4">
+          <button onClick={deleteAllEntries} className="button">Delete all entries</button>
+        </div>
       <div className="flex justify-between items-center mb-4">
+        
         <h2 className="text-2xl font-bold">Write your journal!</h2>
       </div>
       
@@ -70,5 +88,6 @@ export default function JournalPage() {
       <JournalForm/>
       <JournalList entries={entries}/>
     </div>
+    </>
   );
 }

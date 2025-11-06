@@ -12,8 +12,10 @@ const initialState = {
   }],
   loading: false,
   error: null,
-
+  tempText: "",
+  tempMood: "",
 }
+
 
 export const addEntry = createAsyncThunk(
   "addEntry/journals",
@@ -114,7 +116,16 @@ export const deleteEntry = createAsyncThunk(
 const journalSlice = createSlice({
   name: "journal",
   initialState,
-  reducers: {},
+  reducers: {
+    setTempText: (state, action) => {
+      state.tempText = action.payload;
+      console.log("Temp text updated to:", state.tempText);
+    },
+    setTempMood: (state, action) => {
+      state.tempMood = action.payload;
+      console.log("Temp mood updated to:", state.tempMood);
+  },
+},
   extraReducers: (builder) => {
     builder
       // Add Entry
@@ -166,6 +177,7 @@ const journalSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      
       // Update Entry
       builder
       .addCase(updateEntry.pending, (state) => {
@@ -174,14 +186,21 @@ const journalSlice = createSlice({
       })
       .addCase(updateEntry.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.entries.findIndex(entry => entry.id === action.payload._id);
+        console.log("Updating entry with ID:", action.payload._id);
+        console.log("Current entries before update:", state.entries);
+        const index = state.entries.findIndex(entry => entry._id === action.payload._id);
         if (index !== -1) {
           state.entries[index] = action.payload;
+          console.log("Update successful. Entry updated:", state.entries[index]);
+        } else {
+          console.warn("Entry not found in local state, adding it");
+          state.entries.push(action.payload);
         }
       })
       .addCase(updateEntry.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        console.error("Update entry rejected with error:", action.payload);
       })
       // Delete Entry
       builder
@@ -203,6 +222,6 @@ const journalSlice = createSlice({
   },
 });
 
-export const { } = journalSlice.actions;
+export const {setTempText, setTempMood } = journalSlice.actions;
 
 export default journalSlice.reducer;

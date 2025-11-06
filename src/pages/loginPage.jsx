@@ -3,9 +3,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../store/slices/authSlice";
 import { set } from "zod";
+import GenericPopup from "../components/GenericPopup";
+import { User } from "lucide-react";
+import { MailIcon, LockIcon } from "lucide-react";
 
 
 const LoginPage = () => {
@@ -13,6 +16,9 @@ const LoginPage = () => {
     const nav = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [failed, setFailed] = useState(false);
+    let success = false;
+
+    const {name} = useSelector((state) => state.auth);
     const {
         register,
         handleSubmit,
@@ -30,10 +36,12 @@ const LoginPage = () => {
             setIsSubmitting(true);
             setFailed(false);
             await dptch(login(data)).unwrap();
+            success = true;
+            console.log("Login successful for user:", data.email, success);
             reset();
             setTimeout(() =>{
                 nav("/");
-            }, 1000);
+            }, 900);
         } catch (error) {
             setFailed(true);
             console.error("Login failed:", error);
@@ -42,19 +50,33 @@ const LoginPage = () => {
         }
     }
     return (
+        <>
+            {success && <GenericPopup children={(
+                <p>Success! Welcome to ZenJournal, {name}</p>
+            )}/>}
         <form className="body" onSubmit={handleSubmit(onSubmit)}>
             
-            <div className="login-container mt-40 flex flex-col items-center w-1/2">
-                <h1 className="text-3xl mb-4 font-bold">Login</h1>
-                <input type="email" placeholder="Email" {...register("email")} />
+            <div className="login-container mt-40 flex flex-col  w-1/2">
+                <h1 className="text-3xl mb-4 font-bold text-left">Welcome back</h1>
+                <p className="text-gray-700">Sign in to continue your mindful journey.</p>
+                <div className="relative w-full">
+                    <MailIcon className="absolute left-2 top-8 text-zen-400" />
+                    <input type="email" placeholder="Email" {...register("email")} className="pl-10 w-full" />
+                </div>
                 {errors.email && <p className="text-red-500">{errors.email.message}</p>}
-                <input type="password" placeholder="Password" {...register("password")} />
+                <div className="relative w-full mt-4">
+                    <LockIcon className="absolute left-2 top-8 text-zen-400" />
+                    <input type="password" placeholder="Password" {...register("password")} className="pl-10 w-full" />
+                </div>
                 {errors.password && <p className="text-red-500">{errors.password.message}</p>}
                 <button className="button" type="submit" disabled={isSubmitting}>Login</button>
                 {(errors.password || errors.email) && <p className="text-red-500 mt-2">Fill in all fields correctly</p>}
                 {failed && <p className="text-red-500 mt-2 font-bold">Login failed. Please check your credentials and try again.</p>}
+                
             </div>
+            <p className="text-gray-500">Your privacy is our priority. All entries are encrypted and secure.</p>
         </form>
+        </>
     )
 }
 export default LoginPage;

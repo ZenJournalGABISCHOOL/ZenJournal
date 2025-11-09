@@ -1,7 +1,7 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -13,8 +13,9 @@ export default defineConfig({
         target: 'https://zenjournalbe.vercel.app',
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path
-      }
-    }
-  }
+        // If your backend does NOT expect /api in the path, uncomment the next line:
+        // rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })

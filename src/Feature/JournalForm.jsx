@@ -99,13 +99,14 @@ export default function JournalForm() {
       <button type="submit" className="button">Submit</button>
       
       {/* Debug button to test form validation */}
-      <button 
+      { /* <button 
         type="button" 
         onClick={() => console.log("Current form errors:", errors)}
         className="mt-2 px-4 py-2 bg-gray-500 text-white rounded text-sm"
       >
         Debug: Check Form Errors
       </button>
+      */ }
     </form>
   );
 }

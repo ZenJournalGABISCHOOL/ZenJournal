@@ -15,7 +15,7 @@
   @apply flex flex-row gap-4 items-center mt-8 mb-8 h-1/2 border-4 border-blue-300 p-6 rounded-lg shadow-lg bg-zen-200 w-full;
 }
 .journal-form-container {
-    @apply flex flex-col items-center mt-8 mb-8 h-1/2 border-4 border-red-300 p-6 rounded-lg shadow-lg bg-zen-200 w-full;
+    @apply flex flex-col items-center mt-8 mb-8 h-1/2 border-4 border-gray-200 p-6 rounded-lg shadow-lg bg-zen-200 w-full;
 }
 
 input {
